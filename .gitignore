@@ -25,3 +25,7 @@ __pycache__/
 # Local files
 .DS_Store
 .vscode/
+
+# Private paper-trading runtime
+runtime/
+logs/
