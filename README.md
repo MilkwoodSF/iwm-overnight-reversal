@@ -152,3 +152,76 @@ This repository documents research findings; it does not distribute the underlyi
 ## Disclaimer
 
 This repository contains experimental quantitative research, not investment advice or a production trading system. Historical simulated returns are not evidence of achievable live trading performance.
+
+## Alpaca paper-trading implementation
+
+This repository also contains an experimental, standalone Alpaca
+paper-trading service for prospectively evaluating the frozen strategy.
+
+**Status: Automated dry-run scheduling enabled. Paper-order submission
+has not been authorized or validated end to end.**
+
+### Execution rules
+
+- Instrument: IWM only.
+- Entry signal: previous completed session's close-to-close return
+  is less than or equal to -0.66555%.
+- Entry: buy at the current session's closing auction using an
+  Alpaca market-on-close (`cls`) order.
+- Exit: sell at the next trading session's opening auction using
+  an Alpaca market-on-open (`opg`) order.
+- Otherwise, remain in cash.
+- No threshold optimization or discretionary overrides.
+
+### Capital and execution safeguards
+
+- Dedicated Alpaca paper account.
+- Whole shares only.
+- Maximum purchase budget: 95% of the lesser of account cash
+  and equity; margin buying power is excluded.
+- Deterministic order identifiers and duplicate-order checks.
+- Trading-calendar-aware auction deadlines.
+- Position, order-status and fill reconciliation.
+- Unexpected positions, partial fills and failed exits require
+  explicit reconciliation rather than arbitrary-price recovery.
+- Paper submission requires both the `--paper-submit` argument
+  and a separate private environment-variable authorization.
+
+### Automation
+
+Five systemd timers use the America/New_York timezone:
+
+| Scheduled check | Eastern time |
+|---|---:|
+| Opening-auction exit | 9:10 a.m. |
+| Opening-fill reconciliation | 9:40 a.m. |
+| Early-close entry check | 12:35 p.m. |
+| Regular closing-auction entry | 3:35 p.m. |
+| Closing-fill reconciliation | 4:10 p.m. |
+
+The service independently checks the Alpaca trading calendar and
+permitted execution windows. Missed timer events are not replayed.
+
+The systemd configuration currently runs without `--paper-submit`.
+Timer definitions are maintained on the VPS and are not included
+in this repository.
+
+### Telegram notifications
+
+The implementation supports notifications for confirmed BUY and
+SELL fills, including execution price, quantity and account
+information. SELL notifications can also report overnight P&L.
+Exceptional service failures can trigger alerts.
+
+Private Alpaca and Telegram credentials are stored outside the
+repository and must never be committed.
+
+### Validation status
+
+The service has successfully executed through systemd in dry-run
+mode outside trading hours. Existing safety tests cover individual
+components. A complete simulated entry-to-exit execution cycle
+and prospective auction-fill validation remain outstanding.
+
+Paper execution must not be enabled until the integrated workflow
+has been reviewed and explicitly authorized.
