@@ -1,0 +1,27 @@
+# Market data and generated datasets
+data/
+*.csv
+*.parquet
+*.feather
+*.dbn
+*.dbn.zst
+
+# Credentials and private configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*
+secrets*
+
+# Python environments and generated files
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Local files
+.DS_Store
+.vscode/
