@@ -120,8 +120,12 @@ def reconcile_fills(headers, state, enabled):
         notify_once(state, 'notified', key, msg, enabled)
 
 
-def run(headers, state, enabled):
-    now = datetime.now(ET)
+def run(headers, state, enabled, now=None):
+    # Injectable clock permits deterministic offline execution tests.
+    now = now if now is not None else datetime.now(ET)
+    if now.tzinfo is None:
+        raise ValueError('Service clock must be timezone-aware')
+    now = now.astimezone(ET)
     today = now.date()
     sessions = calendar(headers, today - timedelta(days=20), today + timedelta(days=10))
     account = api(PAPER, '/v2/account', headers)
